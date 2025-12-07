@@ -1,3 +1,4 @@
+import { error } from "console";
 import { pool } from "../../database/db";
 
 const createBooking = async (
@@ -36,6 +37,19 @@ const createBooking = async (
   const dailyPrice = vehicleInfo.rows[0].daily_rent_price;
   const startDate = new Date(rent_start_date as string);
   const endDate = new Date(rent_end_date as string);
+  const currentDate = new Date();
+
+  if (startDate < currentDate) {
+    const err: any = new Error("Booking start date cannot be in the past");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (endDate < currentDate) {
+    const err: any = new Error("Booking end date cannot be in the past");
+    err.statusCode = 400;
+    throw err;
+  }
 
   const differentTime = endDate.getTime() - startDate.getTime();
   const totalDays = Math.ceil(differentTime / (1000 * 3600 * 24));
@@ -55,6 +69,31 @@ const createBooking = async (
     "UPDATE vehicles SET availability_status = 'booked' WHERE id = $1",
     [vehicle_id]
   );
+
+  const expiredBookings = await pool.query(
+    `SELECT id, vehicle_id FROM bookings 
+       WHERE status = 'active' 
+       AND rent_end_date < $1`,
+    [currentDate]
+  );
+  if (expiredBookings.rows.length > 0) {
+    await pool.query(
+      `UPDATE bookings 
+         SET status = 'returned' 
+         WHERE id = ANY($1)`,
+      [expiredBookings.rows.map((b) => b.id)]
+    );
+    const vehicleIds = expiredBookings.rows.map((b) => b.vehicle_id);
+    await pool.query(
+      `UPDATE vehicles 
+         SET availability_status = 'available' 
+         WHERE id = ANY($1)`,
+      [vehicleIds]
+    );
+
+    console.log(`Updated ${expiredBookings.rows.length} expired bookings`);
+  }
+
   const data = result.rows[0];
   const responsedata = {
     ...data,
@@ -65,6 +104,7 @@ const createBooking = async (
   };
   return responsedata;
 };
+
 const getAllBookings = async () => {
   const bookingsResult = await pool.query(
     "SELECT * FROM bookings ORDER BY id DESC"
@@ -78,7 +118,7 @@ const getAllBookings = async () => {
       );
 
       const customerInfo = await pool.query(
-        "SELECT name, email, FROM users WHERE id = $1",
+        "SELECT name, email FROM users WHERE id = $1",
         [booking.customer_id]
       );
       const responsedata = {
