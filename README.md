@@ -4,11 +4,12 @@ Live URL: (https://vehicle-rental-system-hazel.vercel.app)
 
 ## Technology Stack
 
-- **Node.js** + **TypeScript**
-- **Express.js** (web framework)
+- **Node.js**
+- **TypeScript**
+- **Express.js**
 - **PostgreSQL** (database)
-- **bcrypt** (password hashing)
-- **jsonwebtoken** (JWT authentication)
+- **bcrypt** 
+- **jsonwebtoken** 
 
 ---
 
@@ -23,6 +24,41 @@ Live URL: (https://vehicle-rental-system-hazel.vercel.app)
 - Role-based booking access (Admin: all bookings, Customer: own bookings).
 - Automatic vehicle status updates on booking and return.
 - Validated booking dates with cancellation rules.
-- PostgreSQL relational database with strong data integrity.
+- PostgreSQL relational database .
 - Modular backend architecture (Routes, Controllers, Services).
 - Secure API with validation and protected endpoints.
+
+ ### Setup & Usage Instructions
+
+ At first clone the project using git :
+ ```
+git clone https://github.com/shakhawat-coder/vehicle-rental-system.git
+```
+ Move into the project using : 
+ ```
+ cd vehicle-rental-system
+```
+
+Install all dependencies :
+```
+npm install
+```
+Create a .env file and configure:
+```
+DATABASE_URL= Your neondb connection url
+PORT = Listenign port
+JWT_SECRET= "Your secret key"
+```
+Build the project (for TypeScript)
+```
+npm run build
+```
+Run the server:
+```
+npm run dev
+```
+
+API base URL:
+```
+http://localhost:5000/api/v1/
+```
